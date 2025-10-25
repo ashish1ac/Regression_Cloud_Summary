@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Regression & Cloud Portal</title>
+
+    <!-- Bootstrap + DataTables -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+
+    <!-- Your app styles (layout for charts/waffles/panels) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=6">
+
+    <style>
+      body {
+        background-color: #0b0f14;
+        color: #e5e7eb;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      }
+
+      .navbar {
+        background-color: #111827 !important;
+        border-bottom: 1px solid #1f2937;
+      }
+      .navbar .navbar-brand,
+      .navbar .nav-link,
+      .navbar .navbar-text {
+        color: #e5e7eb !important;
+      }
+      .navbar .nav-link:hover {
+        color: #60a5fa !important;
+      }
+
+      /* Explore button styling */
+      .btn-outline-primary {
+        border-color: #3c5c83;
+        color: #2e8bc0;
+      }
+      .btn-outline-primary:hover {
+        background-color: #60a5fa;
+        color: #0b0f14;
+      }
+
+      .card, .table {
+        background-color: #111827;
+        color: #60739b;
+        border-color: #1f2937;
+      }
+      .table thead th {
+        color: #9ca3af;
+        border-bottom-color: #1f2937;
+      }
+      .table tbody tr:nth-child(even) {
+        background-color: #1f2937;
+      }
+      .table tbody tr:hover {
+        background-color: #1e293b;
+      }
+
+      .alert {
+        background-color: #1f2937;
+        color: #e5e7eb;
+        border: 1px solid #374151;
+      }
+
+      hr { border-color: #1f2937; }
+      a { color: #60a5fa; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top" style="padding-top:6px;padding-bottom:6px;">
+      <div class="container-fluid">
+        <a class="navbar-brand fw-semibold" href="{{ url_for('index') }}">
+          RegDash <span class="text-muted">(NSP)</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample04" aria-controls="navbarsExample04" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarsExample04">
+          <ul class="navbar-nav me-auto mb-2 mb-md-0">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('details') }}">Details</a></li>
+          </ul>
+          <span class="navbar-text me-3">
+            <span class="fw-semibold">Window:</span>
+            <span id="window-span"></span>
+          </span>
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('details') }}">Explore</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container my-4">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category=='error' else category }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+      fetch("{{ url_for('api_summary') }}")
+        .then(r => r.json())
+        .then(d => {
+          const start = new Date(d.window.start_iso).toLocaleString();
+          const end   = new Date(d.window.end_iso).toLocaleString();
+          const el = document.getElementById('window-span');
+          if (el) el.textContent = `${start} → ${end}`;
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

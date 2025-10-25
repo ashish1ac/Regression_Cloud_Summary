@@ -1,0 +1,375 @@
+/* -----------------------------------------
+   Minimal, clean aesthetic
+--------------------------------------------*/
+.card { border-radius: 1rem; overflow: hidden; }
+.table thead th { font-size: 0.85rem; text-transform: uppercase; letter-spacing: .02em; }
+.badge { font-weight: 600; }
+
+.window-select-card .form-label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+.window-select-card .form-select {
+  background-color: #0f172a;
+  color: #9fa0a9;
+  border: 1px solid rgba(99,102,241,0.4);
+  font-weight: 600;
+  border-radius: 0.65rem;
+  padding: 0.65rem 0.9rem;
+  box-shadow: inset 0 0 0 1px rgba(15,23,42,0.6), 0 12px 24px rgba(75, 92, 131, 0.6);
+}
+.window-select-card .form-select:focus {
+  color: #fefefe;
+  background-color: #0b1220;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 0.15rem rgba(96,165,250,0.25);
+}
+.window-select-card .small {
+  color: #a5b4fc !important;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.window-select-card .card-body {
+  background: radial-gradient(circle at top, rgba(59,130,246,0.08), transparent 55%);
+  border-radius: 1rem;
+  overflow: visible;
+}
+.window-select-card { overflow: visible !important; }
+.window-picker {
+  position: relative;
+  z-index: 5;
+  overflow: visible;
+}
+.window-select-btn {
+  width: 100%;
+  border: none;
+  background: linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95));
+  color: #f8fafc;
+  border-radius: 0.65rem;
+  padding: 0.65rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow: inset 0 0 0 1px rgba(148,163,184,0.2);
+}
+.window-select-btn:hover {
+  box-shadow: inset 0 0 0 1px rgba(96,165,250,0.4);
+}
+.window-select-btn:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(96,165,250,0.5), 0 0 0 2px rgba(59,130,246,0.3);
+}
+.window-chevron {
+  font-size: 0.85rem;
+  opacity: 0.65;
+}
+.window-select-menu {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #0f172a;
+  border: 1px solid rgba(96,165,250,0.3);
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 45px rgba(2,6,23,0.65);
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease, opacity 0.2s ease;
+  opacity: 0;
+}
+.window-select-menu.open {
+  max-height: 280px;
+  opacity: 1;
+  overflow-y: auto;
+}
+.window-option {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  color: #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.window-option:not(:last-child) {
+  border-bottom: 1px solid rgba(148,163,184,0.15);
+}
+.window-option:hover {
+  background: rgba(59,130,246,0.15);
+}
+.window-option-label {
+  font-weight: 600;
+}
+.window-option-range {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+/* -----------------------------------------
+   Unified panel sizing (charts column layout)
+--------------------------------------------*/
+:root {
+  --panel-height: 520px;  /* shared height for donut and stacked cards */
+  --stack-gap: 16px;      /* space between the two right cards */
+  --failure-fr: 7;        /* relative share for Failure chart */
+  --cloud-fr: 3;          /* relative share for Cloud waffle */
+}
+
+.dashboard-panels {
+  align-items: stretch !important;
+}
+
+.left-panel {
+  display: flex;
+}
+.left-panel .card {
+  flex: 1 1 auto;
+  height: var(--panel-height);
+  display: flex;
+  flex-direction: column;
+}
+
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap);
+  height: var(--panel-height);
+}
+.right-panel .card {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;      /* let cards grow/shrink with content */
+  min-height: 0;    /* keeps charts from overflowing */
+}
+.right-panel > .card:first-of-type { flex: 5.5 1 0; }
+.right-panel > .card:last-of-type { flex: 4.5 1 0; }
+
+.trend-card .chart-box-fill {
+  min-height: 260px;
+}
+.dashboard-panels .card,
+.trend-card .card,
+.cloud-trend-row .card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  border: 1px solid rgba(98, 108, 132, 0.8);
+}
+.dashboard-panels .card:hover,
+.trend-card .card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(2,6,23,0.55), inset 0 0 0 1px rgba(76, 123, 180, 0.603);
+  border-color: rgba(96,165,250,0.4);
+  background: linear-gradient(145deg, rgba(15,23,42,0.95), rgba(101, 110, 142, 0.293));
+}
+
+.trend-note {
+  color: #cfd8ff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+}
+
+/* Card body as column so chart areas can expand */
+.card-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Slightly tighter padding on right charts for more plot area */
+.right-panel .card .card-body {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+/* Chart area fills remaining height inside card body */
+.chart-box-fill {
+  position: relative;
+  flex: 1 1 auto;   /* consume remaining height */
+  width: 100%;
+  min-height: 0;    /* prevents overflow in some browsers */
+}
+
+/* Charts auto-scale to container */
+#statusChart,
+#failureChart,
+#projectChart {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* No scrollbars in cards */
+.card { overflow: hidden; }
+
+/* -----------------------------------------
+   Waffle charts (per cloud)
+--------------------------------------------*/
+
+/* Container holding two waffles side-by-side; must fill the card space */
+.waffle-wrap {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  height: 100%;                 /* inherit height from .chart-box-fill */
+  align-items: stretch;         /* make both columns stretch */
+}
+
+/* Each waffle column fills its half and lets the grid grow */
+.waffle-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  min-height: 0;                /* allow children to shrink if needed */
+  flex: 1 1 0;
+}
+
+.waffle-title {
+  font-weight: 600;
+  opacity: .8;
+}
+
+/* Waffle grid ALWAYS stretches; 10x10 fractional cells fill available space */
+.waffle {
+  display: grid;
+  height: 100%;
+  width: 100%;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  gap: 6px;
+}
+
+/* Cells fill their grid slots */
+.waffle .cell {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  background: #32619a;          /* base (unused) */
+}
+
+/* Colors for outcomes */
+.waffle .cell.pass { background: #16a34a; }  /* PASSED (green) */
+.waffle .cell.fail { background: #c01717c9; }  /* FAILED (punchy red) */
+
+/* Caption under each waffle */
+.waffle-caption {
+  margin-top: 4px;
+  color: #7686b4;
+  opacity: 0.95;
+  font-weight: 500;
+  font-size: 0.92rem;
+}
+
+/* Legend small color boxes */
+.legend-box {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.legend-pass { background: #16a34a; }
+.legend-fail { background: #ef4444; }
+
+/* Stack waffles vertically on small screens */
+@media (max-width: 991.98px) {
+  .waffle-wrap { grid-template-columns: 1fr; }
+}
+
+/* --- Waffle visibility fixes (append at end) --- */
+
+/* Ensure the waffle drawing area never gets too short */
+.right-panel > .card:last-of-type .chart-box-fill {
+  min-height: 160px;   /* allow more breathing room without forcing overflow */
+}
+
+/* Prevent “stripe” look by enforcing a minimum row height */
+.waffle {
+  grid-template-rows: repeat(10, minmax(12px, 1fr));
+  /* keep your existing columns */
+  grid-template-columns: repeat(10, 1fr);
+}
+
+/* Trim internal gaps so more height goes to the grid itself */
+.waffle-card { gap: 6px; }
+.waffle-title { font-size: 0.95rem; margin-bottom: 2px; }
+
+/* --- Fix: avoid bottom clipping on right-column charts --- */
+.right-panel .card .card-body {
+  padding-bottom: 1rem !important;   /* give a bit more breathing room */
+}
+
+/* add internal padding inside the chart area so axes/last row don't touch the rounded card edge */
+.right-panel > .card .chart-box-fill {
+  padding-bottom: 14px;               /* general padding for charts in right column */
+}
+
+/* the top bar chart needs a tad more space for x-axis labels & grid line */
+.right-panel > .card:first-of-type .chart-box-fill {
+  padding-bottom: 18px;
+}
+
+/* keep waffle grid fully visible with slight safety padding */
+.right-panel > .card:last-of-type .chart-box-fill {
+  min-height: 160px;                  /* allow waffle to stay legible without shrinking column */
+  padding-bottom: 12px;
+}
+.window-select-card {
+  min-height: 100%;
+}
+.window-select-card .card-body {
+  height: 100%;
+}
+.window-select-card,
+.window-select-card .card-body,
+.kpi-metric .card,
+.kpi-metric .card-body {
+  height: 100%;
+}
+.kpi-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: nowrap;
+  margin-bottom: 1rem;
+}
+.kpi-row .kpi-card {
+  min-width: 0;
+  position: relative;
+}
+.kpi-row .kpi-card .card,
+.kpi-row .kpi-card .card-body {
+  height: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.kpi-row .kpi-card:first-child {
+  flex: 1.6;
+}
+.kpi-row .kpi-card:not(:first-child) {
+  flex: 1;
+}
+.kpi-row .kpi-card:not(:first-child) .card {
+  background: radial-gradient(circle at top, rgba(148,163,184,0.08), rgba(15,23,42,0.95));
+  border: 1px solid rgba(148,163,184,0.04);
+}
+.kpi-row .kpi-card:not(:first-child) .card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 35px rgba(5,10,25,0.45), inset 0 0 0 1px rgba(96,165,250,0.35);
+  background: linear-gradient(135deg, rgba(15,23,42,0.92), rgba(37,99,235,0.35));
+}
+.kpi-row .kpi-card:not(:first-child) .card:hover .display-6 {
+  color: #f3f4ff;
+}
+.window-select-card .form-select option {
+  color: #0f172a;
+}
+.trend-card .card-body,
+.dashboard-panels .card-body {
+  transition: color 0.25s ease;
+}

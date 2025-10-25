@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow-sm border-0 rounded-4">
+  <div class="card-body">
+    <div class="d-flex flex-wrap gap-2 align-items-end">
+      <div>
+        <label class="form-label mb-1">Start (Asia/Kolkata)</label>
+        <input type="text" id="start" class="form-control form-control-sm" placeholder="YYYY-MM-DD HH:MM:SS">
+      </div>
+      <div>
+        <label class="form-label mb-1">End</label>
+        <input type="text" id="end" class="form-control form-control-sm" placeholder="YYYY-MM-DD HH:MM:SS">
+      </div>
+      <button id="applyRange" class="btn btn-sm btn-primary">Apply Range</button>
+      <div class="ms-auto">
+        <input type="text" id="filterBox" class="form-control form-control-sm" placeholder="Filter by reason / request id / cloud ...">
+      </div>
+    </div>
+    <hr>
+
+    <div class="table-responsive">
+      <table id="runsTable" class="table table-striped align-middle" style="width:100%">
+        <thead>
+          <tr>
+            <th>Started At</th>
+            <th>Request ID</th>
+            <th>Status</th>
+            <th>Reason</th>
+            <th>Subreason</th>
+            <th>Scheduler</th>
+            <th>Cloud</th>
+            <th>Log</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td>{{ r.started_at }}</td>
+            <td class="fw-semibold">{{ r.request_id }}</td>
+            <td>
+              {% if r.status == 'PASSED' %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle">PASSED</span>
+              {% elif r.status == 'FAILED' %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">FAILED</span>
+              {% elif r.status == 'KILLED' %}
+                <span class="badge bg-warning-subtle text-warning border border-warning-subtle">KILLED</span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ r.status }}</span>
+              {% endif %}
+            </td>
+            <td>{{ r.reason or '-' }}</td>
+            <td class="text-muted">{{ r.subreason or '-' }}</td>
+            <td class="text-muted">{{ r.scheduler }}</td>
+            <td>
+              {% if r.cloud %}
+                <span class="badge bg-info-subtle text-info border border-info-subtle">{{ r.cloud }}</span>
+              {% else %}
+                <span class="text-muted">-</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="https://logs.example.com/request/{{ r.request_id }}" 
+                 target="_blank" 
+                 class="btn btn-sm btn-outline-secondary">Open Log</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Initialize DataTable with dark style
+  const table = new DataTable('#runsTable', {
+    pageLength: 25,
+    order: [[0, 'desc']],
+    language: {
+      searchPlaceholder: "Type to filter...",
+      search: ""
+    }
+  });
+
+  // Filter search box live update
+  $('#filterBox').on('keyup', function() {
+    table.search(this.value).draw();
+  });
+
+  // Apply custom range
+  document.getElementById('applyRange').addEventListener('click', () => {
+    const s = document.getElementById('start').value;
+    const e = document.getElementById('end').value;
+    const url = new URL(window.location.href);
+    if (s && e) {
+      url.searchParams.set('start', s);
+      url.searchParams.set('end', e);
+      window.location.href = url.toString();
+    } else {
+      alert('Please fill both Start and End in YYYY-MM-DD HH:MM:SS format.');
+    }
+  });
+
+  // Prefill placeholders with window start/end times
+  fetch("{{ url_for('api_summary') }}")
+    .then(r => r.json())
+    .then(d => {
+      const startISO = d.window.start_iso.replace('T',' ').split('.')[0];
+      const endISO = d.window.end_iso.replace('T',' ').split('.')[0];
+      document.getElementById('start').placeholder = startISO;
+      document.getElementById('end').placeholder = endISO;
+    });
+</script>
+{% endblock %}

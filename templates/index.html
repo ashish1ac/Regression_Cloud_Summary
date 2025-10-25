@@ -1,0 +1,549 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Tiles: KPI tiles + window picker -->
+<div class="kpi-row">
+  <div class="kpi-card window-card">
+    <div class="card shadow-sm border-0 rounded-4 window-select-card h-100">
+      <div class="card-body">
+        <label class="form-label text-muted small mb-1">Data Window</label>
+        <div class="window-picker" id="windowPicker">
+          <button type="button" class="window-select-btn" id="windowSelectBtn">
+            <span id="windowSelectLabel">Loading…</span>
+            <span class="window-chevron">▾</span>
+          </button>
+          <div class="window-select-menu" id="windowSelectMenu"></div>
+        </div>
+        <div class="small text-muted mt-2" id="windowRangeDisplay">{{ window_label }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="card shadow-sm border-0 rounded-4 h-100">
+      <div class="card-body">
+        <h6 class="text-secondary mb-1">TOTAL RUNS</h6>
+        <div class="display-6 fw-bold" id="metric-total">{{ total_runs }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="card shadow-sm border-0 rounded-4 h-100">
+      <div class="card-body">
+        <h6 class="text-success mb-1">PASSED</h6>
+        <div class="display-6 fw-bold" id="metric-passed">{{ passed }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="card shadow-sm border-0 rounded-4 h-100">
+      <div class="card-body">
+        <h6 class="text-danger mb-1">FAILED</h6>
+        <div class="display-6 fw-bold" id="metric-failed">{{ failed }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="card shadow-sm border-0 rounded-4 h-100">
+      <div class="card-body">
+        <h6 class="text-warning mb-1">KILLED</h6>
+        <div class="display-6 fw-bold" id="metric-killed">{{ killed }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Charts row: left tall donut, right stacked cards -->
+<div class="row g-4 mt-1 dashboard-panels">
+
+  <!-- LEFT: tall donut -->
+  <div class="col-12 col-lg-6 left-panel">
+    <div class="card shadow-sm border-0 rounded-4 h-100">
+      <div class="card-body d-flex flex-column">
+        <h6 class="fw-semibold mb-3">Overall Summary</h6>
+        <div class="chart-box-fill">
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: stacked cards match left height -->
+  <div class="col-12 col-lg-6 right-panel">
+
+    <!-- Top Failure Reasons -->
+    <div class="card shadow-sm border-0 rounded-4">
+      <div class="card-body d-flex flex-column">
+        <h6 class="fw-semibold mb-3">Common Failure Reasons</h6>
+        <div class="chart-box-fill">
+          <canvas id="failureChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Waffle charts: blr-cloud4 / blr-cloud5 -->
+    <div class="card shadow-sm border-0 rounded-4">
+      <div class="card-body d-flex flex-column">
+        <h6 class="fw-semibold mb-3">Cloud-wise Regression Success Rate (Past 24 Hours)</h6>
+
+        <!-- Make the waffle area consume the remaining height -->
+        <div class="chart-box-fill d-flex align-items-stretch">
+          <div class="waffle-wrap w-100">
+            <!-- blr-cloud4 -->
+            <div class="waffle-card">
+              <div class="waffle-title">Cloud4</div>
+              <div class="waffle waffle-stretch" id="waffle-blr-cloud4"></div>
+              <div class="waffle-caption small" id="waffle-cap-blr-cloud4"></div>
+            </div>
+
+            <!-- blr-cloud5 -->
+            <div class="waffle-card">
+              <div class="waffle-title">Cloud5</div>
+              <div class="waffle waffle-stretch" id="waffle-blr-cloud5"></div>
+              <div class="waffle-caption small" id="waffle-cap-blr-cloud5"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="small mt-2">
+          <span class="legend-box legend-pass"></span> Passed
+          <span class="ms-3"><span class="legend-box legend-fail"></span> Failed</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 7-day cloud health charts -->
+<div class="row g-4 mt-1 cloud-trend-row">
+  <div class="col-12 col-lg-6">
+    <div class="card shadow-sm border-0 rounded-4 trend-card">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="fw-semibold mb-0">blr-cloud4 — Health (last 7 days)</h6>
+          <span class="trend-note">Pass %</span>
+        </div>
+        <div class="chart-box-fill">
+          <canvas id="trend-blr-cloud4"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div class="card shadow-sm border-0 rounded-4 trend-card">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="fw-semibold mb-0">blr-cloud5 — Health (last 7 days)</h6>
+          <span class="trend-note">Pass %</span>
+        </div>
+        <div class="chart-box-fill">
+          <canvas id="trend-blr-cloud5"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Failure reasons table -->
+<div class="row g-4 mt-1">
+  <div class="col-12">
+    <div class="card shadow-sm border-0 rounded-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <h6 class="fw-semibold mb-0">Failure Reasons (click to drill down)</h6>
+          <a href="{{ url_for('details') }}" class="btn btn-sm btn-outline-secondary">View Details</a>
+        </div>
+        <hr>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead>
+              <tr class="text-muted">
+                <th style="width:50%">Failure Reason</th>
+                <th class="text-center">Count</th>
+                <th>Quick View</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for f in failures %}
+              <tr>
+                <td class="fw-semibold">{{ f.reason }}</td>
+                <td class="text-center">
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{ f.count }}</span>
+                </td>
+                <td>
+                  <a href="{{ url_for('details') }}?reason={{ f.reason | urlencode }}" class="btn btn-sm btn-outline-primary">Open</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function syncPanelHeight() {
+  const leftCard = document.querySelector('.left-panel .card');
+  if (!leftCard) return;
+  const height = leftCard.offsetHeight;
+  if (height) {
+    document.documentElement.style.setProperty('--panel-height', `${height}px`);
+  }
+}
+window.addEventListener('resize', () => requestAnimationFrame(syncPanelHeight));
+
+/* Show 'No data' message when dataset is empty */
+const noDataPlugin = {
+  id: 'noData',
+  afterDraw(chart) {
+    const datasets = chart.data?.datasets || [];
+    const hasData = datasets.some(ds => (ds.data || []).some(v => Number(v) > 0));
+    if (hasData) return;
+    const { ctx, chartArea } = chart;
+    ctx.save();
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('No data', (chartArea.left + chartArea.right)/2, (chartArea.top + chartArea.bottom)/2);
+    ctx.restore();
+  }
+};
+
+const trendCharts = {};
+let statusChartInstance = null;
+let failureChartInstance = null;
+
+const metricEls = {
+  total: document.getElementById("metric-total"),
+  passed: document.getElementById("metric-passed"),
+  failed: document.getElementById("metric-failed"),
+  killed: document.getElementById("metric-killed")
+};
+
+const windowButton = document.getElementById("windowSelectBtn");
+const windowLabel = document.getElementById("windowSelectLabel");
+const windowMenu = document.getElementById("windowSelectMenu");
+const windowRangeDisplay = document.getElementById("windowRangeDisplay");
+const navWindowSpan = document.getElementById("window-span");
+
+let windowOptions = [];
+let currentWindow = null;
+let menuOpen = false;
+
+const statusColors = {
+  PASSED: "#16a34a",
+  FAILED: "#f87171",
+  KILLED: "#f59e0b"
+};
+
+function formatDayLabel(dateStr) {
+  if (!dateStr) return "";
+  const parts = dateStr.split("-").map(Number);
+  const dateObj = new Date(parts[0], (parts[1] || 1) - 1, parts[2] || 1);
+  return dateObj.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function formatWindowRange(windowInfo) {
+  if (!windowInfo) return "";
+  const start = windowInfo.start_iso ? new Date(windowInfo.start_iso) : null;
+  const end = windowInfo.end_iso ? new Date(windowInfo.end_iso) : null;
+  if (!start || !end) return "";
+  const opts = { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" };
+  return `${start.toLocaleString(undefined, opts)} → ${end.toLocaleString(undefined, opts)}`;
+}
+
+function updateWindowDisplays(windowInfo) {
+  const label = formatWindowRange(windowInfo);
+  if (windowRangeDisplay && label) windowRangeDisplay.textContent = label;
+  if (navWindowSpan && label) navWindowSpan.textContent = label;
+}
+
+function updateMetrics(summary) {
+  if (!summary || !summary.status_counts) return;
+  if (metricEls.total) metricEls.total.textContent = summary.total_runs ?? 0;
+  if (metricEls.passed) metricEls.passed.textContent = summary.status_counts.PASSED ?? 0;
+  if (metricEls.failed) metricEls.failed.textContent = summary.status_counts.FAILED ?? 0;
+  if (metricEls.killed) metricEls.killed.textContent = summary.status_counts.KILLED ?? 0;
+}
+
+function renderCloudTrends(trendData) {
+  const seriesMap = trendData?.clouds || {};
+  const defaultDays = trendData?.days || [];
+  ["blr-cloud4", "blr-cloud5"].forEach(cloud => {
+    const canvas = document.getElementById(`trend-${cloud}`);
+    if (!canvas) return;
+    if (trendCharts[cloud]) {
+      trendCharts[cloud].destroy();
+    }
+
+    const rawSeries = seriesMap[cloud] && seriesMap[cloud].length
+      ? seriesMap[cloud]
+      : defaultDays.map(date => ({ date, passed: 0, failed: 0, total: 0 }));
+
+    const formatted = rawSeries.map(point => {
+      const total = point.total || 0;
+      const passed = point.passed || 0;
+      const failed = point.failed || 0;
+      const rate = total ? Math.round((passed / total) * 100) : 0;
+      return {
+        label: formatDayLabel(point.date),
+        rate,
+        total,
+        passed,
+        failed
+      };
+    });
+
+    const ctx = canvas.getContext("2d");
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.offsetHeight || 260);
+    gradient.addColorStop(0, "rgba(96,165,250,0.6)");
+    gradient.addColorStop(1, "rgba(59,130,246,0.05)");
+
+    trendCharts[cloud] = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: formatted.map(p => p.label),
+        datasets: [{
+          label: "Pass %",
+          data: formatted.map(p => p.rate),
+          borderColor: "#60a5fa",
+          backgroundColor: gradient,
+          fill: true,
+          tension: 0.35,
+          pointRadius: 4,
+          pointHoverRadius: 5,
+          pointBackgroundColor: "#fef3c7",
+          pointBorderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            ticks: { color: "#9ca3af" },
+            grid: { display: false }
+          },
+          y: {
+            min: 0,
+            max: 100,
+            ticks: {
+              color: "#9ca3af",
+              callback: value => `${value}%`
+            },
+            grid: { color: "rgba(148,163,184,0.15)" }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            displayColors: false,
+            callbacks: {
+              label: ctx => `Pass %: ${ctx.formattedValue}`,
+              afterLabel: ctx => {
+                const meta = formatted[ctx.dataIndex];
+                return [
+                  `Runs: ${meta.total}`,
+                  `Passed: ${meta.passed}`,
+                  `Failed: ${meta.failed}`
+                ];
+              }
+            }
+          }
+        }
+      }
+    });
+  });
+}
+
+function renderStatusChart(summary) {
+  const canvas = document.getElementById("statusChart");
+  if (!canvas) return;
+  if (statusChartInstance) statusChartInstance.destroy();
+
+  const statuses = Object.keys(summary.status_counts || {});
+  const statusCounts = Object.values(summary.status_counts || {});
+  const statusBg = statuses.map(s => statusColors[s] || "#3b82f6");
+
+  statusChartInstance = new Chart(canvas, {
+    type: "doughnut",
+    data: { labels: statuses, datasets: [{ data: statusCounts, backgroundColor: statusBg, borderWidth: 0 }] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "58%",
+      layout: { padding: { top: 12, bottom: 12, left: 16, right: 16 } },
+      plugins: {
+        legend: { position: "bottom", labels: { color: "#9ca3af", padding: 12 } },
+        title: { display: false }
+      }
+    },
+    plugins: [noDataPlugin]
+  });
+}
+
+function renderFailureChart(summary) {
+  const canvas = document.getElementById("failureChart");
+  if (!canvas) return;
+  if (failureChartInstance) failureChartInstance.destroy();
+
+  const labels = (summary.failures || []).map(x => x.reason);
+  const values = (summary.failures || []).map(x => x.count);
+
+  failureChartInstance = new Chart(canvas, {
+    type: "bar",
+    data: { labels, datasets: [{ label: "Count", data: values, categoryPercentage: 0.7, barPercentage: 0.9, maxBarThickness: 48 }] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 6, bottom: 6, left: 12, right: 12 } },
+      scales: {
+        x: { ticks: { color: "#9ca3af", maxRotation: 0, minRotation: 0, autoSkip: true, autoSkipPadding: 8 }, grid: { color: "rgba(156,163,175,0.15)" } },
+        y: { beginAtZero: true, ticks: { color: "#9ca3af" }, grid: { color: "rgba(156,163,175,0.15)" } }
+      },
+      plugins: {
+        legend: { display: false },
+        title: { display: false }
+      }
+    },
+    plugins: [noDataPlugin]
+  });
+}
+
+/* Build a 10x10 waffle for one cloud using PASSED/FAILED percentages */
+function renderWaffle(containerId, captionId, passed, failed){
+  const total = (passed||0) + (failed||0);
+  const el = document.getElementById(containerId);
+  const cap = document.getElementById(captionId);
+  el.innerHTML = "";
+
+  const pctPass = total ? Math.round((passed/total) * 100) : 0;
+  const pctFail = 100 - pctPass;
+
+  for (let i=0;i<100;i++){
+    const cell = document.createElement('div');
+    if (i < pctPass) cell.className = 'cell pass';
+    else if (i < pctPass + pctFail) cell.className = 'cell fail';
+    else cell.className = 'cell';
+    el.appendChild(cell);
+  }
+
+  if (cap){
+    cap.textContent = total
+      ? `Passed ${passed} / ${total} (${Math.round((passed/total)*100)}%)`
+      : 'No runs';
+  }
+}
+
+function buildQuery(start, end) {
+  if (!start || !end) return "";
+  const params = new URLSearchParams({ start, end });
+  return `?${params.toString()}`;
+}
+
+function loadDashboard(windowStart, windowEnd) {
+  const query = buildQuery(windowStart, windowEnd);
+  Promise.all([
+    fetch(`{{ url_for('api_summary') }}${query}`).then(r => r.json()),
+    fetch(`{{ url_for('api_by_cloud') }}${query}`).then(r => r.json())
+  ]).then(([summary, byCloud]) => {
+    updateMetrics(summary);
+    updateWindowDisplays(summary.window);
+    renderStatusChart(summary);
+    renderFailureChart(summary);
+
+    const c4 = byCloud['blr-cloud4'] || {};
+    const c5 = byCloud['blr-cloud5'] || {};
+    renderWaffle('waffle-blr-cloud4', 'waffle-cap-blr-cloud4', c4['PASSED']||0, c4['FAILED']||0);
+    renderWaffle('waffle-blr-cloud5', 'waffle-cap-blr-cloud5', c5['PASSED']||0, c5['FAILED']||0);
+
+    setTimeout(syncPanelHeight, 60);
+  }).catch(err => console.error(err));
+}
+
+function closeWindowMenu() {
+  menuOpen = false;
+  if (windowMenu) windowMenu.classList.remove("open");
+}
+
+function openWindowMenu() {
+  menuOpen = true;
+  if (windowMenu) windowMenu.classList.add("open");
+}
+
+function toggleWindowMenu() {
+  if (!windowMenu) return;
+  menuOpen ? closeWindowMenu() : openWindowMenu();
+}
+
+function setWindowSelection(win) {
+  currentWindow = win;
+  if (windowLabel) windowLabel.textContent = win.label;
+  if (windowRangeDisplay) windowRangeDisplay.textContent = win.range_label || '';
+  loadDashboard(win.start_iso, win.end_iso);
+  closeWindowMenu();
+}
+
+function initWindowSelector() {
+  if (!windowButton || !windowMenu) {
+    loadDashboard();
+    return;
+  }
+
+  fetch("{{ url_for('api_windows') }}")
+    .then(r => r.json())
+    .then(data => {
+      windowOptions = data.windows || [];
+      if (!windowOptions.length) {
+        windowLabel.textContent = "Last 24 hours";
+        windowMenu.innerHTML = "";
+        loadDashboard();
+        return;
+      }
+
+      windowMenu.innerHTML = windowOptions.map(win => `
+        <button type="button" class="window-option" data-start="${win.start_iso}" data-end="${win.end_iso}">
+          <div class="window-option-label">${win.label}</div>
+          <div class="window-option-range">${win.range_label}</div>
+        </button>
+      `).join("");
+
+      setWindowSelection(windowOptions[0]);
+
+      windowButton.addEventListener('click', toggleWindowMenu);
+
+      windowMenu.addEventListener('click', (event) => {
+        const target = event.target.closest('.window-option');
+        if (!target) return;
+        const start = target.dataset.start;
+        const selected = windowOptions.find(win => win.start_iso === start);
+        if (selected) setWindowSelection(selected);
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!menuOpen) return;
+        if (!event.target.closest('#windowPicker')) closeWindowMenu();
+      });
+    })
+    .catch(err => {
+      console.error(err);
+      loadDashboard();
+    });
+}
+function fetchTrendData() {
+  fetch("{{ url_for('api_cloud_trend') }}?days=7")
+    .then(r => r.json())
+    .then(renderCloudTrends)
+    .catch(err => console.error(err));
+}
+
+initWindowSelector();
+fetchTrendData();
+setTimeout(syncPanelHeight, 120);
+</script>
+{% endblock %}
