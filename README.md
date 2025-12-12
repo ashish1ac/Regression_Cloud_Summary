@@ -1,4 +1,4 @@
-# RegDash — Regression & Cloud Health Dashboard
+# NSP Pulse — Regression & Cloud Health Dashboard
 
 RegDash is a lightweight Flask app used by the NSP automation team to monitor
 daily regression runs and the health of the OpenStack clouds they depend on.
